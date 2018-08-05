@@ -1,18 +1,50 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import { NavController, LoadingController, AlertController } from 'ionic-angular';
+import { Carro } from '../../modelos/carro';
+import { HttpErrorResponse } from '@angular/common/http';
+import { CarrosServiceProvider } from '../../providers/carros-service/carros-service';
+import { NavLifeCycles } from '../../utils/ionic/nav/nav-lifecycles';
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
 })
-export class HomePage {
+export class HomePage implements NavLifeCycles {
 
-  private carros;
-  constructor(public navCtrl: NavController) {
-    this.carros=[
-      {nome:"Golf", preco:"12000"},
-      {nome:"Palio", preco:"300"}
-    ];
+  private carros: Carro[];
+
+  constructor(public navCtrl: NavController, 
+    private _loadingCtrl: LoadingController,
+    private _alertCtrl: AlertController,
+    private carrosService: CarrosServiceProvider) {
+
+  }
+
+  ionViewDidLoad(){
+    let loading = this._loadingCtrl.create({
+      content: 'Carregando carros...'
+    });
+
+    loading.present();
+
+    this.carrosService.lista()
+      .subscribe(
+        (carros) => {
+          this.carros = carros;
+          loading.dismiss();
+        },
+        (err: HttpErrorResponse) => {
+          console.log(err);
+          loading.dismiss();
+          this._alertCtrl.create({
+            title:'Falha na conexão',
+            subTitle:'Não foi possível carregar a lista de carros. Tente novamente mais tarde',
+            buttons: [
+              {text: 'ok'}
+            ]
+          }).present();
+        }
+      );
   }
 
 }
