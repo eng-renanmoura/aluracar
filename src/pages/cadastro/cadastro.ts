@@ -4,8 +4,7 @@ import { Carro } from '../../modelos/carro';
 import { AgendamentosServiceProvider } from '../../providers/agendamentos-service/agendamentos-service';
 import { Agendamento } from '../../modelos/agendamento';
 import { HomePage } from '../home/home';
-
-import 'rxjs/add/operator/finally';
+import { AgendamentoDaoProvider } from '../../providers/agendamento-dao/agendamento-dao';
 
 @IonicPage()
 @Component({
@@ -27,7 +26,8 @@ export class CadastroPage {
   constructor(public navCtrl: NavController, 
     public navParams: NavParams,
     private _alertCtrl: AlertController,
-    private _agendamentosService: AgendamentosServiceProvider) {
+    private _agendamentosService: AgendamentosServiceProvider,
+    private _agendamentoDao: AgendamentoDaoProvider) {
     this.carro = this.navParams.get('carroSelecionado');
     this.precoTotal = this.navParams.get('precoTotal');
   }
@@ -50,7 +50,10 @@ export class CadastroPage {
       enderecoCliente: this.endereco,
       emailCliente: this.email,
       modeloCarro: this.carro.nome,
-      precoTotal: this.precoTotal
+      precoTotal: this.precoTotal,
+      confirmado: false,
+      enviado: false,
+      data: this.data
     }
 
     this._alerta = this._alertCtrl.create({
@@ -66,7 +69,22 @@ export class CadastroPage {
     });
 
     let mensagem = '';
-    this._agendamentosService.agenda(agendamento)
+
+    this._agendamentoDao.ehDuplicado(agendamento)
+      .mergeMap(ehDuplicado => {
+        if(ehDuplicado){
+          throw new Error('Agendamento existente!');
+        }
+        return this._agendamentosService.agenda(agendamento)
+      })
+      .mergeMap((valor) => {
+          let observable = this._agendamentoDao.salva(agendamento);
+          if(valor instanceof Error){
+            throw valor;
+          }
+
+          return observable;
+        })
         .finally(
           () => {
             this._alerta.setSubTitle(mensagem);
@@ -74,14 +92,9 @@ export class CadastroPage {
           }
         )
         .subscribe(
-          () => {
-            mensagem = 'Agendamento realizado!';
-          },
-          () => {
-            mensagem = 'Falha no agendamento!';
-          }
+          () => mensagem = 'Agendamento realizado!',
+          (err: Error) => mensagem = err.message
         );
   }
-
 
 }
