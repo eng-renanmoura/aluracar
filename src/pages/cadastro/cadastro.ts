@@ -6,6 +6,9 @@ import { Agendamento } from '../../modelos/agendamento';
 import { HomePage } from '../home/home';
 import { AgendamentoDaoProvider } from '../../providers/agendamento-dao/agendamento-dao';
 
+import { Vibration } from '@ionic-native/vibration';
+import { DatePicker } from '@ionic-native/date-picker';
+
 @IonicPage()
 @Component({
   selector: 'page-cadastro',
@@ -27,13 +30,27 @@ export class CadastroPage {
     public navParams: NavParams,
     private _alertCtrl: AlertController,
     private _agendamentosService: AgendamentosServiceProvider,
-    private _agendamentoDao: AgendamentoDaoProvider) {
+    private _agendamentoDao: AgendamentoDaoProvider,
+    private _vibration: Vibration,
+    private _datePicker: DatePicker) {
+
     this.carro = this.navParams.get('carroSelecionado');
     this.precoTotal = this.navParams.get('precoTotal');
   }
 
+  selecionaData(){
+    this._datePicker.show({
+      date: new Date(),
+      mode: 'date'
+    })
+    .then(
+      data => this.data = data.toISOString());
+  }
+
   agenda(){
     if(!this.nome || !this.endereco || !this.email){
+      this._vibration.vibrate(500);
+
       this._alertCtrl.create({
         title: 'Preenchimento obrigatório',
         subTitle: 'Preencha todos os campos',

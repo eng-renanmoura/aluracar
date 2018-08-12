@@ -21,6 +21,8 @@ import 'rxjs/add/observable/of';
 import { AgendamentoDaoProvider } from '../providers/agendamento-dao/agendamento-dao';
 import { LoginPage } from '../pages/login/login';
 import { UsuariosServiceProvider } from '../providers/usuarios-service/usuarios-service';
+import { Vibration } from '@ionic-native/vibration';
+import { DatePicker } from '@ionic-native/date-picker';
 
 @NgModule({
   declarations: [
@@ -51,7 +53,9 @@ import { UsuariosServiceProvider } from '../providers/usuarios-service/usuarios-
     CarrosServiceProvider,
     AgendamentosServiceProvider,
     AgendamentoDaoProvider,
-    UsuariosServiceProvider
+    UsuariosServiceProvider,
+    Vibration,
+    DatePicker
   ]
 })
 export class AppModule {}
